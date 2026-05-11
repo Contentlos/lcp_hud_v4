@@ -66,8 +66,9 @@
       // element's TOP-LEFT corner.
       el.style.left = cfg.x + '%';
       el.style.top  = cfg.y + '%';
+      // Single source of truth for scale via the --scale custom property;
+      // the CSS rule reads it through transform: scale(var(--scale, 1)).
       el.style.setProperty('--scale', cfg.scale ?? 1);
-      el.style.transform = `scale(${cfg.scale ?? 1})`;
       el.classList.toggle('is-hidden', cfg.visible === false);
     }
   }
@@ -185,10 +186,14 @@
       `;
       editorList.appendChild(li);
     }
-
-    editorList.addEventListener('input', onEditorInput);
-    editorList.addEventListener('click', onEditorClick);
   }
+
+  // Register editor-list event handlers ONCE. buildEditorList rewrites the
+  // inner DOM each time the editor opens, but the list element itself is
+  // stable, so a single delegated listener is correct (and prevents a leak
+  // where every open multiplied the handlers).
+  editorList.addEventListener('input', onEditorInput);
+  editorList.addEventListener('click', onEditorClick);
 
   function onEditorInput(e) {
     const t = e.target;

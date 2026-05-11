@@ -3,15 +3,21 @@
    --------------------------------------------------------------------- */
 
 :root {
-  /* Backgrounds are nearly transparent so the HUD blends into the world
-     instead of showing dark pills everywhere. The editor panel uses a
-     deeper alpha because it is a focused UI surface. */
-  --c-bg-dim: rgba(0, 0, 0, 0.18);
-  --c-bg-deep: rgba(10, 12, 16, 0.82);
-  --c-border: rgba(255, 255, 255, 0.10);
-  --c-text: #f5f7fa;
-  --c-muted: #c8cdd6;
-  --c-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 0.6);
+  /* Chips have no fill at all. Text legibility comes from a single tight
+     text-shadow, not from dark plates under the HUD. The editor panel is
+     the only surface that is intentionally opaque. */
+  --c-bg-dim: transparent;
+  --c-bg-deep: rgba(14, 16, 22, 0.78);
+  --c-border: rgba(255, 255, 255, 0.06);
+  --c-text: #ffffff;
+  --c-muted: rgba(255, 255, 255, 0.78);
+  /* Multi-layer text-shadow acts as a tight outline around every glyph,
+     so text stays readable on snow / sky / desert without needing a dark
+     plate behind the chip. This is the only shadow we keep on body text. */
+  --c-text-shadow:
+    0 0 2px rgba(0, 0, 0, 0.90),
+    0 0 6px rgba(0, 0, 0, 0.55),
+    0 1px 1px rgba(0, 0, 0, 0.85);
 
   --c-health:  #ef4444; /* red */
   --c-armor:   #1d4ed8; /* dark blue */
@@ -22,8 +28,6 @@
   --c-voice-normal:  rgb( 70, 200, 110);
   --c-voice-shouting:rgb(230,  70,  70);
 
-  --shadow-soft: 0 0 24px rgba(0, 0, 0, 0.45);
-  --glow-soft:   0 0 18px;
   --ease:        cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -102,30 +106,33 @@ body.paused > .hud-element { opacity: 0; }
 
 .ring-bg {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.08);
-  stroke-width: 14;
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 12;
 }
 
 .ring-arc {
   fill: none;
-  stroke-width: 14;
+  stroke-width: 12;
   stroke-linecap: round;
   stroke-dasharray: 100;
   stroke-dashoffset: 100; /* start empty */
-  transition: stroke-dashoffset 0.6s var(--ease), filter 0.3s var(--ease);
+  transition: stroke-dashoffset 0.6s var(--ease);
 }
 
-.ring-arc--hunger { stroke: var(--c-hunger); filter: drop-shadow(0 0 4px var(--c-hunger)); }
-.ring-arc--thirst { stroke: var(--c-thirst); filter: drop-shadow(0 0 4px var(--c-thirst)); }
-.ring-arc--health { stroke: var(--c-health); filter: drop-shadow(0 0 4px var(--c-health)); }
-.ring-arc--armor  { stroke: var(--c-armor);  filter: drop-shadow(0 0 4px var(--c-armor)); }
+.ring-arc--hunger { stroke: var(--c-hunger); }
+.ring-arc--thirst { stroke: var(--c-thirst); }
+.ring-arc--health { stroke: var(--c-health); }
+.ring-arc--armor  { stroke: var(--c-armor); }
 
 .ring-value {
   fill: #fff;
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 700;
   text-anchor: middle;
   dominant-baseline: middle;
+  paint-order: stroke fill;
+  stroke: rgba(0, 0, 0, 0.85);
+  stroke-width: 3px;
 }
 
 .ring-icons {
@@ -154,13 +161,10 @@ body.paused > .hud-element { opacity: 0; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 30px;
-  padding: 0 10px;
-  background: var(--c-bg-dim);
-  border: 1px solid var(--c-border);
-  border-radius: 999px;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  height: 28px;
+  padding: 0 8px;
+  background: transparent;
+  border: none;
 }
 
 .chip-icon {
@@ -185,16 +189,16 @@ body.paused > .hud-element { opacity: 0; }
   transition: width 0.4s var(--ease), background 0.3s var(--ease);
 }
 
-.chip--health  .chip-bar-fill { background: var(--c-health); box-shadow: 0 0 8px var(--c-health); }
-.chip--armor   .chip-bar-fill { background: var(--c-armor);  box-shadow: 0 0 8px var(--c-armor); }
-.chip--hunger  .chip-bar-fill { background: var(--c-hunger); box-shadow: 0 0 8px var(--c-hunger); }
-.chip--thirst  .chip-bar-fill { background: var(--c-thirst); box-shadow: 0 0 8px var(--c-thirst); }
+.chip--health  .chip-bar-fill { background: var(--c-health); }
+.chip--armor   .chip-bar-fill { background: var(--c-armor); }
+.chip--hunger  .chip-bar-fill { background: var(--c-hunger); }
+.chip--thirst  .chip-bar-fill { background: var(--c-thirst); }
 
 .chip-value {
   min-width: 28px;
   text-align: right;
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 12px;
   color: var(--c-text);
 }
@@ -207,14 +211,11 @@ body.paused > .hud-element { opacity: 0; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 30px;
-  padding: 0 12px;
-  background: var(--c-bg-dim);
-  border-radius: 999px;
-  border: 1px solid var(--c-border);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  transition: box-shadow 0.3s var(--ease), color 0.3s var(--ease);
+  height: 28px;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  transition: color 0.3s var(--ease);
 }
 
 .voice-icon {
@@ -227,19 +228,19 @@ body.paused > .hud-element { opacity: 0; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 12px;
 }
 .voice-mode { letter-spacing: 0.3px; }
 .voice-distance { color: var(--c-muted); font-weight: 500; }
 
-.voice[data-mode="whisper"]  .voice-icon { color: var(--c-voice-whisper);  filter: drop-shadow(0 0 6px var(--c-voice-whisper)); }
-.voice[data-mode="normal"]   .voice-icon { color: var(--c-voice-normal);   filter: drop-shadow(0 0 6px var(--c-voice-normal)); }
-.voice[data-mode="shouting"] .voice-icon { color: var(--c-voice-shouting); filter: drop-shadow(0 0 6px var(--c-voice-shouting)); }
+.voice[data-mode="whisper"]  .voice-icon { color: var(--c-voice-whisper); }
+.voice[data-mode="normal"]   .voice-icon { color: var(--c-voice-normal); }
+.voice[data-mode="shouting"] .voice-icon { color: var(--c-voice-shouting); }
 
-.voice[data-mode="whisper"]  { box-shadow: 0 0 14px rgba(200,200,200,0.30); }
-.voice[data-mode="normal"]   { box-shadow: 0 0 14px rgba( 70,200,110,0.35); }
-.voice[data-mode="shouting"] { box-shadow: 0 0 14px rgba(230, 70, 70,0.40); }
+.voice[data-mode="whisper"]  .voice-mode { color: var(--c-voice-whisper); }
+.voice[data-mode="normal"]   .voice-mode { color: var(--c-voice-normal); }
+.voice[data-mode="shouting"] .voice-mode { color: var(--c-voice-shouting); }
 
 /* ---------------------------------------------------------------------
    Ammo
@@ -248,14 +249,11 @@ body.paused > .hud-element { opacity: 0; }
 .ammo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  height: 30px;
-  padding: 0 12px;
-  background: var(--c-bg-dim);
-  border: 1px solid var(--c-border);
-  border-radius: 999px;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  gap: 8px;
+  height: 28px;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
   font-weight: 600;
   font-size: 13px;
   transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
@@ -273,20 +271,17 @@ body.paused > .hud-element { opacity: 0; }
 .job {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  height: 30px;
-  padding: 0 12px;
-  background: var(--c-bg-dim);
-  border: 1px solid var(--c-border);
-  border-radius: 999px;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  gap: 8px;
+  height: 28px;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
 }
 .job-icon  { width: 16px; height: 16px; color: #fff; }
 .job-icon svg { width: 100%; height: 100%; }
 .job-text  { display: inline-flex; flex-direction: column; line-height: 1.05; }
-.job-label { font-weight: 600; font-size: 12px; }
-.job-grade { font-weight: 500; font-size: 10px; color: var(--c-muted); }
+.job-label { font-weight: 700; font-size: 12px; }
+.job-grade { font-weight: 600; font-size: 10px; color: var(--c-muted); }
 
 /* ---------------------------------------------------------------------
    Player ID
@@ -297,18 +292,15 @@ body.paused > .hud-element { opacity: 0; }
   align-items: center;
   gap: 6px;
   height: 22px;
-  padding: 0 8px;
-  background: var(--c-bg-dim);
-  border: 1px solid var(--c-border);
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.4px;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
 }
-.pid-tag   { color: var(--c-muted); font-size: 9px; }
-.pid-value { color: var(--c-text); font-variant-numeric: tabular-nums; }
+.pid-tag   { color: var(--c-muted); font-size: 10px; }
+.pid-value { color: var(--c-text); font-variant-numeric: tabular-nums; font-size: 13px; }
 
 .pid.hidden { opacity: 0; pointer-events: none; }
 
@@ -336,10 +328,10 @@ body.paused > .hud-element { opacity: 0; }
   width: 340px;
   background: var(--c-bg-deep);
   border: 1px solid var(--c-border);
-  border-radius: 14px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.30);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -433,26 +425,17 @@ body.paused > .hud-element { opacity: 0; }
    Editor mode visual cues on HUD elements
    --------------------------------------------------------------------- */
 
-/* Subtle screen-wide dim only while the editor is open, drawn behind
-   everything (z-index < HUD) so clicks pass straight through. */
-body.editor-on::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.25);
-  pointer-events: none;
-  z-index: 0;
-}
-
+/* No screen-wide dim while the editor is open — we want the player to
+   see exactly what the HUD looks like in-game while they're moving it. */
 body.editor-on .hud-element {
   pointer-events: auto;
-  outline: 2px dashed rgba(255,255,255,0.30);
-  outline-offset: 6px;
-  border-radius: 6px;
+  outline: 1px dashed rgba(255, 255, 255, 0.45);
+  outline-offset: 4px;
+  border-radius: 4px;
   cursor: grab;
   z-index: 10;
 }
-body.editor-on .hud-element:hover { outline-color: rgba(91,140,255,0.7); }
-body.editor-on .hud-element.is-dragging { cursor: grabbing; outline-color: rgba(91,140,255,1); }
+body.editor-on .hud-element:hover     { outline-color: rgba(120, 170, 255, 0.85); }
+body.editor-on .hud-element.is-dragging { cursor: grabbing; outline-style: solid; outline-color: rgba(120, 170, 255, 1); }
 
 .hidden { display: none !important; }
