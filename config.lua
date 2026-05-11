@@ -133,7 +133,7 @@ Config.Editor = {
 --  85% down from the top edge".
 --
 --  Used on first launch only; once the player has saved any layout via
---  the editor it lives in KVP under "lcp_hud_v4:layout:v1".
+--  the editor it lives in KVP under "lcp_hud_v4:layout:v2".
 -- =========================================================================
 Config.Defaults = {
     -- Dual status rings ~244px wide. Bottom-left, well above the minimap.
