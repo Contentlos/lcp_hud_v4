@@ -3,11 +3,15 @@
    --------------------------------------------------------------------- */
 
 :root {
-  --c-bg-dim: rgba(12, 14, 18, 0.55);
-  --c-bg-deep: rgba(10, 12, 16, 0.8);
-  --c-border: rgba(255, 255, 255, 0.08);
+  /* Backgrounds are nearly transparent so the HUD blends into the world
+     instead of showing dark pills everywhere. The editor panel uses a
+     deeper alpha because it is a focused UI surface. */
+  --c-bg-dim: rgba(0, 0, 0, 0.18);
+  --c-bg-deep: rgba(10, 12, 16, 0.82);
+  --c-border: rgba(255, 255, 255, 0.10);
   --c-text: #f5f7fa;
-  --c-muted: #b6bcc8;
+  --c-muted: #c8cdd6;
+  --c-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 0.6);
 
   --c-health:  #ef4444; /* red */
   --c-armor:   #1d4ed8; /* dark blue */
@@ -38,6 +42,7 @@ html, body {
   pointer-events: none;
   overflow: hidden;
   user-select: none;
+  text-shadow: var(--c-text-shadow);
 }
 
 body.hidden > .hud-element { opacity: 0; pointer-events: none; }
@@ -48,12 +53,15 @@ body.paused > .hud-element { opacity: 0; }
    --------------------------------------------------------------------- */
 
 .hud-element {
+  /* Positioned by top-left corner. The drag layer in script.js writes
+     left/top in viewport percent. Scale is applied via transform only,
+     so x/y are honest top-left coordinates a human can reason about. */
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(var(--scale, 1));
-  transition: opacity 0.18s var(--ease), transform 0.2s var(--ease);
+  left: 0;
+  top: 0;
+  transform: scale(var(--scale, 1));
   transform-origin: 0 0;
+  transition: opacity 0.18s var(--ease), filter 0.2s var(--ease);
 }
 
 .hud-element[hidden],
@@ -73,14 +81,10 @@ body.paused > .hud-element { opacity: 0; }
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 18px;
-  padding: 6px 10px;
-  background: var(--c-bg-dim);
-  border-radius: 18px;
-  border: 1px solid var(--c-border);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: var(--shadow-soft);
+  gap: 14px;
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
 .status-ring {
@@ -150,14 +154,13 @@ body.paused > .hud-element { opacity: 0; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 32px;
+  height: 30px;
   padding: 0 10px;
   background: var(--c-bg-dim);
   border: 1px solid var(--c-border);
-  border-radius: 16px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: var(--shadow-soft);
+  border-radius: 999px;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 .chip-icon {
@@ -204,14 +207,13 @@ body.paused > .hud-element { opacity: 0; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 32px;
+  height: 30px;
   padding: 0 12px;
   background: var(--c-bg-dim);
-  border-radius: 16px;
+  border-radius: 999px;
   border: 1px solid var(--c-border);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   transition: box-shadow 0.3s var(--ease), color 0.3s var(--ease);
 }
 
@@ -235,9 +237,9 @@ body.paused > .hud-element { opacity: 0; }
 .voice[data-mode="normal"]   .voice-icon { color: var(--c-voice-normal);   filter: drop-shadow(0 0 6px var(--c-voice-normal)); }
 .voice[data-mode="shouting"] .voice-icon { color: var(--c-voice-shouting); filter: drop-shadow(0 0 6px var(--c-voice-shouting)); }
 
-.voice[data-mode="whisper"]  { box-shadow: var(--shadow-soft), 0 0 14px rgba(200,200,200,0.25); }
-.voice[data-mode="normal"]   { box-shadow: var(--shadow-soft), 0 0 14px rgba( 70,200,110,0.3); }
-.voice[data-mode="shouting"] { box-shadow: var(--shadow-soft), 0 0 14px rgba(230, 70, 70,0.35); }
+.voice[data-mode="whisper"]  { box-shadow: 0 0 14px rgba(200,200,200,0.30); }
+.voice[data-mode="normal"]   { box-shadow: 0 0 14px rgba( 70,200,110,0.35); }
+.voice[data-mode="shouting"] { box-shadow: 0 0 14px rgba(230, 70, 70,0.40); }
 
 /* ---------------------------------------------------------------------
    Ammo
@@ -247,14 +249,13 @@ body.paused > .hud-element { opacity: 0; }
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  height: 32px;
+  height: 30px;
   padding: 0 12px;
   background: var(--c-bg-dim);
   border: 1px solid var(--c-border);
-  border-radius: 16px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: var(--shadow-soft);
+  border-radius: 999px;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   font-weight: 600;
   font-size: 13px;
   transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
@@ -273,14 +274,13 @@ body.paused > .hud-element { opacity: 0; }
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  height: 32px;
+  height: 30px;
   padding: 0 12px;
   background: var(--c-bg-dim);
   border: 1px solid var(--c-border);
-  border-radius: 16px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: var(--shadow-soft);
+  border-radius: 999px;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 .job-icon  { width: 16px; height: 16px; color: #fff; }
 .job-icon svg { width: 100%; height: 100%; }
@@ -296,14 +296,16 @@ body.paused > .hud-element { opacity: 0; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 24px;
+  height: 22px;
   padding: 0 8px;
   background: var(--c-bg-dim);
   border: 1px solid var(--c-border);
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.4px;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 .pid-tag   { color: var(--c-muted); font-size: 9px; }
 .pid-value { color: var(--c-text); font-variant-numeric: tabular-nums; }
@@ -314,21 +316,23 @@ body.paused > .hud-element { opacity: 0; }
    Editor overlay
    --------------------------------------------------------------------- */
 
-#editor { pointer-events: auto; }
+/* The editor's container is positioned bottom-left and only the panel
+   itself is interactive — the rest of the screen stays click-through so
+   HUD elements remain draggable. */
 #editor.hidden { display: none; }
 
 .editor {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
+  left: 0;
+  bottom: 0;
   padding: 24px;
   z-index: 9999;
+  pointer-events: none;
+  background: transparent;
 }
 
 .editor-panel {
+  pointer-events: auto;
   width: 340px;
   background: var(--c-bg-deep);
   border: 1px solid var(--c-border);
@@ -429,11 +433,24 @@ body.paused > .hud-element { opacity: 0; }
    Editor mode visual cues on HUD elements
    --------------------------------------------------------------------- */
 
+/* Subtle screen-wide dim only while the editor is open, drawn behind
+   everything (z-index < HUD) so clicks pass straight through. */
+body.editor-on::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  z-index: 0;
+}
+
 body.editor-on .hud-element {
   pointer-events: auto;
-  outline: 2px dashed rgba(255,255,255,0.25);
+  outline: 2px dashed rgba(255,255,255,0.30);
   outline-offset: 6px;
+  border-radius: 6px;
   cursor: grab;
+  z-index: 10;
 }
 body.editor-on .hud-element:hover { outline-color: rgba(91,140,255,0.7); }
 body.editor-on .hud-element.is-dragging { cursor: grabbing; outline-color: rgba(91,140,255,1); }

@@ -5,7 +5,8 @@
 --  manages saving / loading the player's editor layout to KVP.
 -- ---------------------------------------------------------------------------
 
-local KVP_KEY = 'lcp_hud_v4:layout:v1'
+-- v2 = top-left anchor coordinates (v1 used centered transform).
+local KVP_KEY = 'lcp_hud_v4:layout:v2'
 
 HUD = {
     layout  = nil,

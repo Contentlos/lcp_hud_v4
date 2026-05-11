@@ -62,11 +62,12 @@
       if (!el) continue;
       const cfg = state.layout[key];
       if (!cfg) continue;
-      // x,y are 0..100 percent of viewport.
+      // x,y are 0..100 percent of viewport, interpreted as the
+      // element's TOP-LEFT corner.
       el.style.left = cfg.x + '%';
       el.style.top  = cfg.y + '%';
       el.style.setProperty('--scale', cfg.scale ?? 1);
-      el.style.transform = `translate(-50%, -50%) scale(${cfg.scale ?? 1})`;
+      el.style.transform = `scale(${cfg.scale ?? 1})`;
       el.classList.toggle('is-hidden', cfg.visible === false);
     }
   }
@@ -263,19 +264,22 @@
   function moveDrag(e) {
     if (!state.dragging) return;
     const d = state.dragging;
-    let newLeft = e.clientX - d.offsetX + d.width / 2;
-    let newTop  = e.clientY - d.offsetY + d.height / 2;
+    // New top-left of the element, in viewport pixels.
+    let newLeft = e.clientX - d.offsetX;
+    let newTop  = e.clientY - d.offsetY;
     // Convert to percentage of viewport.
     let xp = (newLeft / d.vw) * 100;
     let yp = (newTop  / d.vh) * 100;
-    // Snap unless shift held.
     if (!e.shiftKey && state.config?.editor?.snapToGrid !== false) {
       const g = state.config?.editor?.gridSize || 8;
       xp = snap(xp, g);
       yp = snap(yp, g);
     }
-    xp = Math.max(0, Math.min(100, xp));
-    yp = Math.max(0, Math.min(100, yp));
+    // Clamp so the element stays mostly on-screen.
+    const elWp = (d.width  / d.vw) * 100;
+    const elHp = (d.height / d.vh) * 100;
+    xp = Math.max(0, Math.min(100 - elWp, xp));
+    yp = Math.max(0, Math.min(100 - elHp, yp));
     state.layout[d.key].x = xp;
     state.layout[d.key].y = yp;
     applyLayout();

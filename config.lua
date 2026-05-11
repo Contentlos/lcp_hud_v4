@@ -126,15 +126,24 @@ Config.Editor = {
 }
 
 -- =========================================================================
---  Default element positions / scale (in CSS percent units).
+--  Default element positions / scale.
 --
---  These are used the first time the HUD runs. After that, the player's
---  saved layout from KVP is used.
+--  x, y are viewport percentages (0..100) interpreted as the element's
+--  TOP-LEFT corner. So "x=2, y=85" means "2% from the left edge,
+--  85% down from the top edge".
+--
+--  Used on first launch only; once the player has saved any layout via
+--  the editor it lives in KVP under "lcp_hud_v4:layout:v1".
 -- =========================================================================
 Config.Defaults = {
-    status   = { x = 1.5,  y = 84.0, scale = 1.0, visible = true },
-    voice    = { x = 50.0, y = 92.0, scale = 1.0, visible = true },
-    ammo     = { x = 88.0, y = 88.0, scale = 1.0, visible = true },
+    -- Dual status rings ~244px wide. Bottom-left, well above the minimap.
+    status   = { x = 1.5,  y = 78.0, scale = 1.0, visible = true },
+
+    -- Voice + job + ammo sit roughly along the bottom bar.
+    job      = { x = 1.5,  y = 92.0, scale = 1.0, visible = true },
+    voice    = { x = 42.0, y = 92.0, scale = 1.0, visible = true },
+    ammo     = { x = 86.0, y = 92.0, scale = 1.0, visible = true },
+
+    -- Player ID tucked in the top-left.
     playerid = { x = 1.5,  y = 1.5,  scale = 1.0, visible = true },
-    job      = { x = 12.0, y = 92.0, scale = 1.0, visible = true },
 }
