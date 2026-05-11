@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lua:
+    name: Lua syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lua 5.4
+        run: sudo apt-get update && sudo apt-get install -y lua5.4
+
+      - name: Verify luac is available
+        run: luac5.4 -v
+
+      - name: Syntax-check every .lua file
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r -d '' file; do
+            echo "== $file"
+            if ! luac5.4 -p "$file"; then
+              fail=1
+            fi
+          done < <(find . -type f -name '*.lua' -not -path './.git/*' -print0)
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::One or more Lua files failed parsing."
+            exit 1
+          fi
+
+  js:
+    name: JS syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax-check every .js file
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r -d '' file; do
+            echo "== $file"
+            if ! node --check "$file"; then
+              fail=1
+            fi
+          done < <(find . -type f -name '*.js' -not -path './.git/*' -not -path './node_modules/*' -print0)
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::One or more JS files failed parsing."
+            exit 1
+          fi
+
+  html:
+    name: HTML / CSS sanity check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Minimal sanity check: each HTML file must parse without an error
+      # via node-html-parser. We avoid installing a full linter to keep CI fast.
+      - name: Sanity-parse HTML
+        run: |
+          npm install --no-save node-html-parser >/dev/null
+          node -e "
+            const { parse } = require('node-html-parser');
+            const fs = require('fs');
+            const path = require('path');
+            function walk(dir) {
+              return fs.readdirSync(dir).flatMap(name => {
+                const p = path.join(dir, name);
+                const s = fs.statSync(p);
+                if (s.isDirectory()) return walk(p);
+                if (name.endsWith('.html')) return [p];
+                return [];
+              });
+            }
+            const files = walk('.').filter(p => !p.includes('node_modules') && !p.includes('.git/'));
+            let bad = 0;
+            for (const f of files) {
+              try {
+                const root = parse(fs.readFileSync(f, 'utf8'));
+                if (!root) { console.error('Failed to parse', f); bad++; }
+                else console.log('OK', f);
+              } catch (e) {
+                console.error('Failed', f, e.message); bad++;
+              }
+            }
+            if (bad) { process.exit(1); }
+          "
