@@ -428,4 +428,26 @@
 
   // Hide body until init arrives.
   document.body.classList.add('hidden');
+
+  // Tell Lua we are alive so it (re)sends init. Lua's boot thread fires
+  // init with Wait(0), which can race the iframe load and lose the message.
+  // Calling back here makes the boot deterministic: the resource resends
+  // init the moment the page has registered its 'message' listener.
+  function announceReady() {
+    post('nui:ready');
+  }
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    announceReady();
+  } else {
+    document.addEventListener('DOMContentLoaded', announceReady, { once: true });
+  }
+
+  // Safety net: if init still hasn't arrived after 2s (e.g. NUI callback
+  // route is unavailable for some reason), unhide so the player at least
+  // sees the HUD instead of a blank screen. applyLayout is a no-op without
+  // state.layout, so elements stay at left:0/top:0 — visually broken but
+  // visibly there, which makes the failure mode obvious instead of silent.
+  setTimeout(() => {
+    if (!state.layout) document.body.classList.remove('hidden');
+  }, 2000);
 })();
