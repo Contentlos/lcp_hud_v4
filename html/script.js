@@ -62,11 +62,13 @@
       if (!el) continue;
       const cfg = state.layout[key];
       if (!cfg) continue;
-      // x,y are 0..100 percent of viewport.
+      // x,y are 0..100 percent of viewport, interpreted as the
+      // element's TOP-LEFT corner.
       el.style.left = cfg.x + '%';
       el.style.top  = cfg.y + '%';
+      // Single source of truth for scale via the --scale custom property;
+      // the CSS rule reads it through transform: scale(var(--scale, 1)).
       el.style.setProperty('--scale', cfg.scale ?? 1);
-      el.style.transform = `translate(-50%, -50%) scale(${cfg.scale ?? 1})`;
       el.classList.toggle('is-hidden', cfg.visible === false);
     }
   }
@@ -184,10 +186,14 @@
       `;
       editorList.appendChild(li);
     }
-
-    editorList.addEventListener('input', onEditorInput);
-    editorList.addEventListener('click', onEditorClick);
   }
+
+  // Register editor-list event handlers ONCE. buildEditorList rewrites the
+  // inner DOM each time the editor opens, but the list element itself is
+  // stable, so a single delegated listener is correct (and prevents a leak
+  // where every open multiplied the handlers).
+  editorList.addEventListener('input', onEditorInput);
+  editorList.addEventListener('click', onEditorClick);
 
   function onEditorInput(e) {
     const t = e.target;
@@ -263,19 +269,22 @@
   function moveDrag(e) {
     if (!state.dragging) return;
     const d = state.dragging;
-    let newLeft = e.clientX - d.offsetX + d.width / 2;
-    let newTop  = e.clientY - d.offsetY + d.height / 2;
+    // New top-left of the element, in viewport pixels.
+    let newLeft = e.clientX - d.offsetX;
+    let newTop  = e.clientY - d.offsetY;
     // Convert to percentage of viewport.
     let xp = (newLeft / d.vw) * 100;
     let yp = (newTop  / d.vh) * 100;
-    // Snap unless shift held.
     if (!e.shiftKey && state.config?.editor?.snapToGrid !== false) {
       const g = state.config?.editor?.gridSize || 8;
       xp = snap(xp, g);
       yp = snap(yp, g);
     }
-    xp = Math.max(0, Math.min(100, xp));
-    yp = Math.max(0, Math.min(100, yp));
+    // Clamp so the element stays mostly on-screen.
+    const elWp = (d.width  / d.vw) * 100;
+    const elHp = (d.height / d.vh) * 100;
+    xp = Math.max(0, Math.min(100 - elWp, xp));
+    yp = Math.max(0, Math.min(100 - elHp, yp));
     state.layout[d.key].x = xp;
     state.layout[d.key].y = yp;
     applyLayout();
@@ -424,4 +433,26 @@
 
   // Hide body until init arrives.
   document.body.classList.add('hidden');
+
+  // Tell Lua we are alive so it (re)sends init. Lua's boot thread fires
+  // init with Wait(0), which can race the iframe load and lose the message.
+  // Calling back here makes the boot deterministic: the resource resends
+  // init the moment the page has registered its 'message' listener.
+  function announceReady() {
+    post('nui:ready');
+  }
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    announceReady();
+  } else {
+    document.addEventListener('DOMContentLoaded', announceReady, { once: true });
+  }
+
+  // Safety net: if init still hasn't arrived after 2s (e.g. NUI callback
+  // route is unavailable for some reason), unhide so the player at least
+  // sees the HUD instead of a blank screen. applyLayout is a no-op without
+  // state.layout, so elements stay at left:0/top:0 — visually broken but
+  // visibly there, which makes the failure mode obvious instead of silent.
+  setTimeout(() => {
+    if (!state.layout) document.body.classList.remove('hidden');
+  }, 2000);
 })();

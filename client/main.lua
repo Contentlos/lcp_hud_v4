@@ -5,7 +5,8 @@
 --  manages saving / loading the player's editor layout to KVP.
 -- ---------------------------------------------------------------------------
 
-local KVP_KEY = 'lcp_hud_v4:layout:v1'
+-- v2 = top-left anchor coordinates (v1 used centered transform).
+local KVP_KEY = 'lcp_hud_v4:layout:v2'
 
 HUD = {
     layout  = nil,
@@ -113,24 +114,38 @@ end
 --  Boot
 -- ---------------------------------------------------------------------------
 
-CreateThread(function()
-    -- Wait until the NUI page has loaded once.
-    Wait(0)
-    HUD.loadLayout()
+local function sendInit()
     SendNUIMessage({
         type    = 'init',
         config  = {
-            layout      = Config.Layout,
-            colors      = Config.Voice.colors,
-            playerId    = Config.PlayerId,
-            ammo        = Config.Ammo,
-            jobEnabled  = Config.Job.enabled,
+            layout       = Config.Layout,
+            colors       = Config.Voice.colors,
+            playerId     = Config.PlayerId,
+            ammo         = Config.Ammo,
+            jobEnabled   = Config.Job.enabled,
             voiceEnabled = Config.Voice.enabled,
-            editor      = Config.Editor,
+            editor       = Config.Editor,
         },
         layout = HUD.layout,
     })
     HUD.pushState()
+end
+
+CreateThread(function()
+    -- Load layout immediately so it's ready whenever the NUI calls back.
+    HUD.loadLayout()
+    -- Fire an early init too. Most of the time the NUI is parsed quickly
+    -- enough to receive it; if not, the 'nui:ready' callback below will
+    -- re-send. Either path leaves the page in a correct state.
+    Wait(0)
+    sendInit()
+end)
+
+-- The NUI page calls this once its message listener is registered. Without
+-- it, an early init can race the iframe load and the page stays blank.
+RegisterNUICallback('nui:ready', function(_, cb)
+    sendInit()
+    cb({ ok = true })
 end)
 
 -- Toggle the whole HUD with /hud (handy for screenshots).
