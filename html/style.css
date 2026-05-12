@@ -11,13 +11,15 @@
   --c-border: rgba(255, 255, 255, 0.06);
   --c-text: #ffffff;
   --c-muted: rgba(255, 255, 255, 0.78);
-  /* Multi-layer text-shadow acts as a tight outline around every glyph,
-     so text stays readable on snow / sky / desert without needing a dark
-     plate behind the chip. This is the only shadow we keep on body text. */
+  /* Hard, tight outline on every glyph. Avoids the dark halo / smoke
+     effect a blurred text-shadow creates on bright backgrounds. Combined
+     with -webkit-text-stroke (set on body) this gives crisp readable text
+     without any plate or fill behind the chips. */
   --c-text-shadow:
-    0 0 2px rgba(0, 0, 0, 0.90),
-    0 0 6px rgba(0, 0, 0, 0.55),
-    0 1px 1px rgba(0, 0, 0, 0.85);
+    0 1px 0 rgba(0, 0, 0, 0.55),
+    1px 0 0 rgba(0, 0, 0, 0.55),
+    -1px 0 0 rgba(0, 0, 0, 0.55),
+    0 -1px 0 rgba(0, 0, 0, 0.55);
 
   --c-health:  #ef4444; /* red */
   --c-armor:   #1d4ed8; /* dark blue */
@@ -46,7 +48,11 @@ html, body {
   pointer-events: none;
   overflow: hidden;
   user-select: none;
+  /* Text on HUD chips uses a sharp 4-direction "pixel outline" instead of
+     a blurred shadow. Looks crisp without bleeding any dark area into
+     surrounding background. */
   text-shadow: var(--c-text-shadow);
+  -webkit-text-stroke: 0; /* opt-in per-element below */
 }
 
 body.hidden > .hud-element { opacity: 0; pointer-events: none; }
@@ -177,7 +183,7 @@ body.paused > .hud-element { opacity: 0; }
 .chip-bar {
   width: 90px;
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -308,16 +314,18 @@ body.paused > .hud-element { opacity: 0; }
    Editor overlay
    --------------------------------------------------------------------- */
 
-/* The editor's container is positioned bottom-left and only the panel
-   itself is interactive — the rest of the screen stays click-through so
-   HUD elements remain draggable. */
+/* The editor sits vertically centered against the left edge so it does
+   not cover the bottom-left HUD area (status circles, job chip). Only
+   the panel itself is interactive — the rest of the screen stays
+   click-through so HUD elements remain draggable. */
 #editor.hidden { display: none; }
 
 .editor {
   position: fixed;
   left: 0;
-  bottom: 0;
-  padding: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 16px;
   z-index: 9999;
   pointer-events: none;
   background: transparent;
@@ -325,7 +333,7 @@ body.paused > .hud-element { opacity: 0; }
 
 .editor-panel {
   pointer-events: auto;
-  width: 340px;
+  width: 320px;
   background: var(--c-bg-deep);
   border: 1px solid var(--c-border);
   border-radius: 12px;
@@ -335,7 +343,7 @@ body.paused > .hud-element { opacity: 0; }
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 48px);
+  max-height: calc(100vh - 32px);
 }
 
 .editor-header {
